@@ -183,3 +183,81 @@ FROM cliente
 WHERE cliente.cliente_id >15
 
 ) ;
+
+-- devuelve la suma de los montos con IVA
+drop function if exists  fn_calcula_iva ;
+
+ delimiter $$
+ create function fn_calcula_iva (p_iva decimal(4,2) )
+ returns float
+ deterministic
+ begin
+
+ declare v_con_iva float ;
+ set v_con_iva =
+      (select  sum(precio_total) * p_iva from detalle_pedido
+		)
+       ;
+   return  v_con_iva;
+ end$$
+ delimiter ;
+
+
+ select fn_calcula_iva(1.28)
+ as  v_con_iva
+  ;
+
+-- devuelve un mensaje de ok si hay un pedido con ese ID o si no lo hay
+drop function if exists fn_p_mensaje;
+delimiter //
+
+create function fn_p_mensaje (id int)
+returns varchar(255)
+deterministic
+begin
+
+declare v_mensaje varchar(255);
+
+select count(*) into v_mensaje
+from pedido
+where pedido_id = id;
+
+if v_mensaje = 1 then
+    set v_mensaje = 'Pedido encontrado';
+else
+    set v_mensaje = 'Pedido no encontrado';
+end if;
+
+return v_mensaje;
+
+end //
+delimiter ;
+SELECT fn_p_mensaje(5) as mensaje_validacion;
+
+
+
+drop procedure if exists clientes_mayores ;
+delimiter //
+create procedure clientes_mayores ( p_precio int)
+deterministic
+begin
+
+select c.nombre, sum(dp.precio_total)
+from pedido as p
+join cliente as c
+on p.cliente_id=c.cliente_id
+
+join detalle_pedido as dp
+on p.det_pedido_id = dp.det_pedido_id
+group by c.nombre
+
+HAVING  max((dp.precio_total)) > p_precio;
+
+
+end//
+delimiter ;
+
+call clientes_mayores ( 2400);
+
+
+
