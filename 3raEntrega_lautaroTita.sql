@@ -251,13 +251,38 @@ join detalle_pedido as dp
 on p.det_pedido_id = dp.det_pedido_id
 group by c.nombre
 
-HAVING  max((dp.precio_total)) > p_precio;
+HAVING  sum((dp.precio_total)) > p_precio;
 
 
 end//
 delimiter ;
 
 call clientes_mayores ( 2400);
+
+
+
+drop procedure if exists regiones_mayor ;
+delimiter //
+create procedure regiones_mayor ( p_precio int)
+deterministic
+begin
+
+select p.region, sum(dp.precio_total)
+
+from pedido as p
+join detalle_pedido as dp
+on p.det_pedido_id = dp.det_pedido_id
+group by p.region
+
+HAVING  sum((dp.precio_total)) > p_precio
+order by sum(dp.precio_total) desc
+limit 1;
+
+
+end//
+delimiter ;
+
+call regiones_mayor ( 2400);
 
 
 
