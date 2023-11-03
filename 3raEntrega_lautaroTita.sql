@@ -3,6 +3,7 @@ DROP DATABASE IF EXISTS pedidos;
 CREATE DATABASE pedidos;
 USE pedidos;
 
+drop table if exists vendedor;
 CREATE TABLE vendedor (
 	nombre VARCHAR(20) NOT NULL,
 	apellido VARCHAR(20) NOT NULL,
@@ -14,6 +15,7 @@ CREATE TABLE vendedor (
 );
 
 -- Crear tabla cliente
+drop table if exists cliente;
 CREATE TABLE cliente (
 	nombre VARCHAR(20) NOT NULL,
 	apellido VARCHAR(20) NOT NULL,
@@ -25,6 +27,7 @@ CREATE TABLE cliente (
 );
 
 -- Crear tabla producto
+drop table if exists producto;
 CREATE TABLE producto (
   producto_id INT NOT NULL,
   nombre VARCHAR(30) NOT NULL ,
@@ -33,6 +36,7 @@ CREATE TABLE producto (
 );
 
 -- Crear tabla estado pedido
+drop table if exists estadoPedido;
 create table estadoPedido
 (
     estado_ID int primary key ,
@@ -41,6 +45,7 @@ create table estadoPedido
 );
 
 -- Crear tabla  det pedido
+drop table if exists detalle_pedido;
 CREATE TABLE detalle_pedido (
   det_pedido_id INT NOT NULL,
   pedido_id INT NOT NULL ,
@@ -55,6 +60,7 @@ CREATE TABLE detalle_pedido (
 
 
 -- Crear tabla pedido
+drop table if exists pedido;
 CREATE TABLE pedido (
   pedido_id INT NOT NULL AUTO_INCREMENT,
   vendedor_id INT NOT NULL,
@@ -75,6 +81,7 @@ CREATE TABLE pedido (
 
 
 -- Insertar datos en la tabla vendedor
+
 INSERT INTO vendedor (nombre, apellido, vendedor_id, direccion, nacimiento, email)
 VALUES
 ('Juan', 'Pérez', 1, 'Calle 123, Ciudad de México', '1980-01-01', 'juan.perez@example.com'),
@@ -285,4 +292,64 @@ delimiter ;
 call regiones_mayor ( 2400);
 
 
+set sql_safe_updates = 0;
 
+drop table if exists auditoria_pedidos;
+create table auditoria_pedidos(
+    id_aud int auto_increment,
+    camponuevo varchar(300),
+    accion varchar(25),
+    tabla varchar(50),
+    usuario varchar(100),
+    fecha_updt date,
+    primary key (id_aud)
+);
+
+drop trigger if exists trg_aud_ped;
+delimiter $$
+create trigger trg_aud_ped before insert on pedidos.pedido
+for each row
+begin
+
+    insert into auditoria_pedidos(camponuevo,accion,tabla,usuario,fecha_updt)
+    values ( concat('id_pedido: ', quote(NEW.pedido_id)), 'insert', 'pedidos', current_user,now());
+
+end $$
+delimiter ;
+
+insert into pedido( vendedor_id, cliente_id, sucursal, region, estadoPedidoID, det_pedido_id)
+values  (4,11,'Sucursal 1', 'region amba',1,501),
+        (6,11,'Sucursal 1', 'region centro',1,501),
+        (7,11,'Sucursal 1', 'region centro',1,501);
+
+select * from auditoria_pedidos;
+select * from pedido;
+
+drop table if exists auditoria_vendedor;
+create table auditoria_vendedor(
+    id_aud int auto_increment,
+    camponuevo varchar(300),
+    accion varchar(25),
+    tabla varchar(50),
+    usuario varchar(100),
+    fecha_updt date,
+    primary key (id_aud)
+);
+
+
+drop trigger if exists trg_aud_vend;
+delimiter $$
+create trigger trg_aud_vend before update on pedidos.vendedor
+for each row
+begin
+
+    insert into auditoria_vendedor(camponuevo,accion,tabla,usuario,fecha_updt)
+    values ( concat('id_vendedor nuevo: ', NEW.apellido, ' ID_vendedor viejo: ', OLD.apellido), 'update', 'vendedor', current_user,now());
+
+end $$
+delimiter ;
+
+select * from vendedor;
+update pedidos.vendedor set apellido = 'morales' where vendedor_id = 1;
+select * from vendedor;
+select * from auditoria_vendedor;
