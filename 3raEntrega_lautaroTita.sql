@@ -160,7 +160,7 @@ VALUES
 
 
 
-
+#vista que muestra los pedidos mayores a 3 mil pesos
 
 create view pedidosGrandes as
 (
@@ -171,6 +171,7 @@ ON pedido.pedido_id = detalle_pedido.pedido_id
 WHERE detalle_pedido.precio_total > 4000
 ) ;
 
+#vista que muestrra los pedidos de la region centro
 create view pedidosCentro as
 (
 SELECT pedido.pedido_id, vendedor_id,cliente_id,sucursal,region,pedido.det_pedido_id
@@ -182,7 +183,7 @@ order by detalle_pedido.precio_total
 ) ;
 
 
-
+#vosta que muestra los clientes a partir del id 15
 create view clientesX as
 (
 SELECT *
@@ -242,7 +243,7 @@ delimiter ;
 SELECT fn_p_mensaje(5) as mensaje_validacion;
 
 
-
+#procedure que muestra los mejores clientes
 drop procedure if exists clientes_mayores ;
 delimiter //
 create procedure clientes_mayores ( p_precio int)
@@ -267,7 +268,7 @@ delimiter ;
 call clientes_mayores ( 2400);
 
 
-
+#procedure que muestra las mejores regiones
 drop procedure if exists regiones_mayor ;
 delimiter //
 create procedure regiones_mayor ( p_precio int)
@@ -304,7 +305,7 @@ create table auditoria_pedidos(
     fecha_updt date,
     primary key (id_aud)
 );
-
+#trigger que agrega informacion a la tabla de auditorias de los pedidos que se agregan
 drop trigger if exists trg_aud_ped;
 delimiter $$
 create trigger trg_aud_ped before insert on pedidos.pedido
@@ -335,7 +336,7 @@ create table auditoria_vendedor(
     fecha_updt date,
     primary key (id_aud)
 );
-
+#trigger que modifica apellido de los vendedores de la empresa
 
 drop trigger if exists trg_aud_vend;
 delimiter $$
