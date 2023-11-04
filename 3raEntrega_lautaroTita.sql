@@ -340,7 +340,7 @@ create table auditoria_vendedor(
 
 drop trigger if exists trg_aud_vend;
 delimiter $$
-create trigger trg_aud_vend before update on pedidos.vendedor
+create trigger trg_aud_vend after update on pedidos.vendedor
 for each row
 begin
 
