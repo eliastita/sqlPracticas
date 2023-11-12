@@ -345,7 +345,7 @@ for each row
 begin
 
     insert into auditoria_vendedor(camponuevo,accion,tabla,usuario,fecha_updt)
-    values ( concat('id_vendedor nuevo: ', NEW.apellido, ' ID_vendedor viejo: ', OLD.apellido), 'update', 'vendedor', current_user,now());
+    values ( concat('apellido_vendedor nuevo: ', NEW.apellido, ' apellido_vendedor viejo: ', OLD.apellido), 'update', 'vendedor', current_user,now());
 
 end $$
 delimiter ;
@@ -354,3 +354,16 @@ select * from vendedor;
 update pedidos.vendedor set apellido = 'morales' where vendedor_id = 1;
 select * from vendedor;
 select * from auditoria_vendedor;
+
+#se crean dos usuarios de prueba
+create user 'usertest1@localhost' identified by 'admin';
+create user 'usertest2@localhost' identified by 'admin';
+
+#se le otorga permisos de lectura al primer user
+grant select on *.* to 'usertest1@localhost';
+
+#se le otorga permisos de lectura, actualizacion e insercion al segundo user
+grant select, update, insert on *.* to 'usertest2@localhost';
+
+
+
