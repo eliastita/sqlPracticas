@@ -19,7 +19,7 @@ drop table if exists cliente;
 CREATE TABLE cliente (
 	nombre VARCHAR(20) NOT NULL,
 	apellido VARCHAR(20) NOT NULL,
-	cliente_id INT NOT NULL,
+	cliente_id INT auto_increment NOT NULL,
 	direccion VARCHAR(30) NOT NULL,
 	nacimiento VARCHAR(12) NOT NULL,
 	email VARCHAR(65) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE cliente (
 -- Crear tabla producto
 drop table if exists producto;
 CREATE TABLE producto (
-  producto_id INT NOT NULL,
+  producto_id INT auto_increment NOT NULL,
   nombre VARCHAR(30) NOT NULL ,
   precio_unitario DOUBLE NOT NULL,
   PRIMARY KEY (producto_id)
@@ -47,7 +47,7 @@ create table estadoPedido
 -- Crear tabla  det pedido
 drop table if exists detalle_pedido;
 CREATE TABLE detalle_pedido (
-  det_pedido_id INT NOT NULL,
+  det_pedido_id INT auto_increment NOT NULL,
   pedido_id INT NOT NULL ,
   producto_id INT NOT NULL,
   cantidad INT NOT NULL,
@@ -365,5 +365,41 @@ grant select on *.* to 'usertest1@localhost';
 #se le otorga permisos de lectura, actualizacion e insercion al segundo user
 grant select, update, insert on *.* to 'usertest2@localhost';
 
+ set autocommit = 0;
+
+#test de transaction, commit, rollback y savepoint.
+
+select * from pedido;
+
+start transaction ;
+
+delete from pedido where pedido_id = 12;
+
+rollback ;
+
+commit ;
+
+
+INSERT INTO cliente (nombre, apellido, cliente_id, direccion, nacimiento, email)
+VALUES
+('lautaro', 'tita', 266, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('elias', 'tita', 256, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('tita', 'tita', 257, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('lautaro', 'lautaro', 258, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com');
+
+savepoint clientesnuevo1;
+INSERT INTO cliente (nombre, apellido, cliente_id, direccion, nacimiento, email)
+VALUES
+('lautaro', 'elias', 259, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('elias', 'tita', 260, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('lautaro', 'elias', 261, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('elias', 'lautaro', 262, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('sebastian', 'tita', 263, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com'),
+('jor', 'pavonsku', 264, 'Calle 123, Republica cordoba', '1980-01-01', 'l.t@example.com');
+
+savepoint clientesnuevos2;
+
+release savepoint clientesnuevo1;
+select * from cliente;
 
 
