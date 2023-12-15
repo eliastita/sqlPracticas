@@ -44,21 +44,6 @@ create table estadoPedido
     descripción VARCHAR(400) NOT NULL
 );
 
--- Crear tabla  det pedido
-drop table if exists detalle_pedido;
-CREATE TABLE detalle_pedido (
-  det_pedido_id INT auto_increment NOT NULL,
-  pedido_id INT NOT NULL ,
-  producto_id INT NOT NULL,
-  cantidad INT NOT NULL,
-  precio_total DOUBLE NOT NULL,
-  PRIMARY KEY (det_pedido_id),
-  FOREIGN KEY (producto_id) REFERENCES producto (producto_id)
-
-);
-
-
-
 -- Crear tabla pedido
 drop table if exists pedido;
 CREATE TABLE pedido (
@@ -68,16 +53,27 @@ CREATE TABLE pedido (
   sucursal VARCHAR(50) NOT NULL,
   region VARCHAR(50) NOT NULL,
   estadoPedidoID INT NOT NULL,
-  det_pedido_id INT NOT NULL,
   PRIMARY KEY (pedido_id),
   FOREIGN KEY (vendedor_id) REFERENCES vendedor (vendedor_id),
   FOREIGN KEY (cliente_id) REFERENCES cliente (cliente_id),
-  FOREIGN KEY (EstadoPedidoID) REFERENCES estadoPedido (estado_ID),
-  FOREIGN KEY (det_pedido_id) REFERENCES detalle_pedido (det_pedido_id)
+  FOREIGN KEY (EstadoPedidoID) REFERENCES estadoPedido (estado_ID)
 
 );
 
 
+-- Crear tabla  det pedido
+drop table if exists detalle_pedido;
+CREATE TABLE detalle_pedido (
+  det_pedido_id INT auto_increment NOT NULL,
+  pedido_id INT NOT NULL ,
+  producto_id INT NOT NULL,
+  cantidad INT NOT NULL,
+  precio_total DOUBLE NOT NULL,
+  PRIMARY KEY (det_pedido_id),
+  FOREIGN KEY (producto_id) REFERENCES producto (producto_id),
+  FOREIGN KEY (pedido_id) REFERENCES  pedido(pedido_id)
+
+);
 
 
 -- Insertar datos en la tabla vendedor
@@ -130,6 +126,22 @@ VALUES
 (4, 'cancelado', 'El pedido esta cancelado'),
 (5, 'Entregado', 'El pedido ha sido entregado');
 
+
+-- Insertar datos en la tabla pedido
+INSERT INTO pedido (pedido_id, vendedor_id, cliente_id, sucursal, region, estadoPedidoID)
+VALUES
+(1, 1, 10, 'Sucursal 1', 'Región amba', 1),
+(2, 2, 11, 'Sucursal 2', 'Región andina', 2),
+(3, 3, 12, 'Sucursal 3', 'Región este', 3),
+(4, 4, 13, 'Sucursal 4', 'Región sur', 4),
+(5, 5, 14, 'Sucursal 5', 'Región norte', 1),
+(6, 6, 15, 'Sucursal 6', 'Región centro', 2),
+(7, 7, 16, 'Sucursal 7', 'Región litoral', 3),
+(8, 8, 17, 'Sucursal 8', 'Región centro', 4),
+(9, 9, 18, 'Sucursal 9', 'Región patagonia', 5);
+
+
+
 -- Insertar datos en la tabla detalle_pedido
 INSERT INTO detalle_pedido (det_pedido_id,pedido_id, producto_id, cantidad, precio_total)
 VALUES
@@ -145,26 +157,12 @@ VALUES
 
 
 
--- Insertar datos en la tabla pedido
-INSERT INTO pedido (pedido_id, vendedor_id, cliente_id, sucursal, region, estadoPedidoID, det_pedido_id)
-VALUES
-(1, 1, 10, 'Sucursal 1', 'Región amba', 1,544),
-(2, 2, 11, 'Sucursal 2', 'Región andina', 2,501),
-(3, 3, 12, 'Sucursal 3', 'Región este', 3,505),
-(4, 4, 13, 'Sucursal 4', 'Región sur', 4,566),
-(5, 5, 14, 'Sucursal 5', 'Región norte', 1,508),
-(6, 6, 15, 'Sucursal 6', 'Región centro', 2,684),
-(7, 7, 16, 'Sucursal 7', 'Región litoral', 3,650),
-(8, 8, 17, 'Sucursal 8', 'Región centro', 4,599),
-(9, 9, 18, 'Sucursal 9', 'Región patagonia', 5,578);
-
-
 
 #vista que muestra los pedidos mayores a 3 mil pesos
 
 create view pedidosGrandes as
 (
-SELECT pedido.pedido_id, vendedor_id,cliente_id,sucursal,region,pedido.det_pedido_id
+SELECT pedido.pedido_id, vendedor_id,cliente_id,sucursal,region
 FROM pedido
 INNER JOIN detalle_pedido
 ON pedido.pedido_id = detalle_pedido.pedido_id
@@ -174,7 +172,7 @@ WHERE detalle_pedido.precio_total > 4000
 #vista que muestrra los pedidos de la region centro
 create view pedidosCentro as
 (
-SELECT pedido.pedido_id, vendedor_id,cliente_id,sucursal,region,pedido.det_pedido_id
+SELECT pedido.pedido_id, vendedor_id,cliente_id,sucursal,region
 FROM pedido
 INNER JOIN detalle_pedido
 ON pedido.pedido_id = detalle_pedido.pedido_id
@@ -256,7 +254,7 @@ join cliente as c
 on p.cliente_id=c.cliente_id
 
 join detalle_pedido as dp
-on p.det_pedido_id = dp.det_pedido_id
+on p.pedido_id = dp.pedido_id
 group by c.nombre
 
 HAVING  sum((dp.precio_total)) > p_precio;
@@ -279,7 +277,7 @@ select p.region, sum(dp.precio_total)
 
 from pedido as p
 join detalle_pedido as dp
-on p.det_pedido_id = dp.det_pedido_id
+on p.pedido_id= dp.pedido_id
 group by p.region
 
 HAVING  sum((dp.precio_total)) > p_precio
@@ -318,10 +316,10 @@ begin
 end $$
 delimiter ;
 
-insert into pedido( vendedor_id, cliente_id, sucursal, region, estadoPedidoID, det_pedido_id)
-values  (4,11,'Sucursal 1', 'region amba',1,501),
-        (6,11,'Sucursal 1', 'region centro',1,501),
-        (7,11,'Sucursal 1', 'region centro',1,501);
+insert into pedido( vendedor_id, cliente_id, sucursal, region, estadoPedidoID)
+values  (4,11,'Sucursal 1', 'region amba',1),
+        (6,11,'Sucursal 1', 'region centro',1),
+        (7,11,'Sucursal 1', 'region centro',1);
 
 select * from auditoria_pedidos;
 select * from pedido;
@@ -355,9 +353,10 @@ update pedidos.vendedor set apellido = 'morales' where vendedor_id = 1;
 select * from vendedor;
 select * from auditoria_vendedor;
 
-#se crean dos usuarios de prueba
-create user 'usertest1@localhost' identified by 'admin';
+#se crean dos usuarios de prueba (comentado porque crear el mismo usuario da error)
+/* create user 'usertest1@localhost' identified by 'admin';
 create user 'usertest2@localhost' identified by 'admin';
+*/
 
 #se le otorga permisos de lectura al primer user
 grant select on *.* to 'usertest1@localhost';
